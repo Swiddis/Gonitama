@@ -49,5 +49,9 @@ func (b BitBoard) IsTerminal() bool {
 }
 
 func (b BitBoard) Winners() []gmcts.Player {
-	return []gmcts.Player{b.Player()}
+	winner := getWinner(b)
+	if winner == 0 {
+		return []gmcts.Player{}
+	}
+	return []gmcts.Player{gmcts.Player(winner)}
 }

@@ -2,7 +2,6 @@ package onitama
 
 import (
 	"math/bits"
-	"math/rand"
 )
 
 func extractMoveInfo(board BitBoard) (uint, []BitMove) {
@@ -106,20 +105,15 @@ func findChildren(board BitBoard) []BitBoard {
 	return children
 }
 
-func findRandomChild(board BitBoard) BitBoard {
-	children := findChildren(board)
-	idx := rand.Intn(len(children))
-	return children[idx]
-}
-
 func isTerminal(board BitBoard) bool {
 	checkmate := board.BlueKing == 0 || board.RedKing == 0
 	capturetheflag := board.BlueKing == 1<<2 || board.RedKing == 1<<22
-	return checkmate || capturetheflag
+	draw := board.BluePawn|board.RedPawn == 0 // not official but the AI tends to loop a lot
+	return checkmate || capturetheflag || draw
 }
 
 // +1 for blue, -1 for red, 0 for unfinished
-func GetWinner(board BitBoard) int {
+func getWinner(board BitBoard) int {
 	if board.RedKing == 0 || board.BlueKing == 1<<22 {
 		return 1
 	}
