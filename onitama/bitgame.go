@@ -58,6 +58,24 @@ func genMoves(board BitBoard) []BitMove {
 	return genMoves
 }
 
+func genPasses(board BitBoard) []BitMove {
+	passes := make([]BitMove, 2)
+	var ccopy uint
+	i := 0
+	if board.BlueToMove {
+		ccopy = board.BlueCard
+	} else {
+		ccopy = board.RedCard
+	}
+	for ccopy > 0 {
+		c := bits.Len(ccopy) - 1
+		passes[i] = BitMove{Card: 1 << c, Move: 0, Mask: 0}
+		i++
+		ccopy ^= 1 << c
+	}
+	return passes
+}
+
 func applyMove(board BitBoard, move BitMove) BitBoard {
 	newBoard := BitBoard{
 		BlueToMove: !board.BlueToMove,

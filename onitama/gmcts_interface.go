@@ -19,7 +19,7 @@ func NewGame(board BitBoard) Onitama {
 func (b BitBoard) GetActions() []gmcts.Action {
 	moves := genMoves(b)
 	if len(moves) == 0 {
-		moves = []BitMove{{Card: 0, Move: 0, Mask: 0}}
+		moves = genPasses(b)
 	}
 	actions := make([]gmcts.Action, len(moves))
 	for i := 0; i < len(moves); i++ {
@@ -29,11 +29,6 @@ func (b BitBoard) GetActions() []gmcts.Action {
 }
 
 func (b BitBoard) ApplyAction(action gmcts.Action) (gmcts.Game, error) {
-	if action.(BitMove).Card == 0 {
-		newGame := b
-		newGame.BlueToMove = !newGame.BlueToMove
-		return gmcts.Game(newGame), nil
-	}
 	return gmcts.Game(applyMove(b, action.(BitMove))), nil
 }
 
