@@ -11,6 +11,10 @@ type BitBoard struct {
 	BlueCard   uint
 	HeldCard   uint
 	BlueToMove bool
+	// Onitama has no official draw rule, but the AI tends to
+	// get caught in infinite loops, so I stole+shortened the
+	// fifty move rule from Chess.
+	MoveRule int
 }
 
 func InitialBoard() BitBoard {
@@ -24,6 +28,7 @@ func InitialBoard() BitBoard {
 		RedCard:    (0b1 << cards[1]) | (0b1 << cards[2]),
 		BlueCard:   (0b1 << cards[3]) | (0b1 << cards[4]),
 		BlueToMove: true,
+		MoveRule:   0,
 	}
 	return board
 }
@@ -38,6 +43,7 @@ func InitialBoardNoCards() BitBoard {
 		RedCard:    0,
 		BlueCard:   0,
 		BlueToMove: true,
+		MoveRule:   0,
 	}
 	return board
 }

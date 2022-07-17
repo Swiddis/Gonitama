@@ -82,10 +82,18 @@ func applyMove(board BitBoard, move BitMove) BitBoard {
 		BlueCard:   board.BlueCard & ^move.Card,
 		RedCard:    board.RedCard & ^move.Card,
 		HeldCard:   move.Card,
+		MoveRule:   board.MoveRule + 1,
+		RedKing:    board.RedKing,
+		RedPawn:    board.RedPawn,
+		BlueKing:   board.BlueKing,
+		BluePawn:   board.BluePawn,
 	}
 	if board.BlueToMove {
-		newBoard.RedKing = board.RedKing & (^move.Move)
-		newBoard.RedPawn = board.RedPawn & (^move.Move)
+		if (board.RedKing|board.RedPawn)&move.Move > 0 {
+			newBoard.MoveRule = 0
+			newBoard.RedKing = board.RedKing & (^move.Move)
+			newBoard.RedPawn = board.RedPawn & (^move.Move)
+		}
 		if board.BluePawn&move.Move > 0 {
 			newBoard.BlueKing = board.BlueKing
 			newBoard.BluePawn = board.BluePawn ^ move.Move
@@ -95,8 +103,11 @@ func applyMove(board BitBoard, move BitMove) BitBoard {
 		}
 		newBoard.BlueCard |= board.HeldCard
 	} else {
-		newBoard.BlueKing = board.BlueKing & (^move.Move)
-		newBoard.BluePawn = board.BluePawn & (^move.Move)
+		if (board.BlueKing|board.BluePawn)&move.Move > 0 {
+			newBoard.MoveRule = 0
+			newBoard.BlueKing = board.BlueKing & (^move.Move)
+			newBoard.BluePawn = board.BluePawn & (^move.Move)
+		}
 		if board.RedPawn&move.Move > 0 {
 			newBoard.RedKing = board.RedKing
 			newBoard.RedPawn = board.RedPawn ^ move.Move
@@ -126,7 +137,7 @@ func findChildren(board BitBoard) []BitBoard {
 func isTerminal(board BitBoard) bool {
 	checkmate := board.BlueKing == 0 || board.RedKing == 0
 	capturetheflag := board.BlueKing == 1<<2 || board.RedKing == 1<<22
-	draw := board.BluePawn|board.RedPawn == 0 // not official but the AI tends to loop a lot
+	draw := board.MoveRule > 20
 	return checkmate || capturetheflag || draw
 }
 
