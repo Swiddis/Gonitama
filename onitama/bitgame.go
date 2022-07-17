@@ -1,42 +1,10 @@
-package search
+package onitama
 
-import (
-	"math/rand"
+import "math/rand"
 
-	"github.com/Swiddis/gonitama/onitama"
-)
-
-var (
-	cards           []onitama.BitCard
-	moveInfo        map[int][]OnitamaMove
-	flippedMoveInfo map[int][]OnitamaMove
-)
-
-func StoreCards(newCards []onitama.BitCard) {
-	cards = newCards
-	moveInfo = make(map[int][]OnitamaMove)
-	flippedMoveInfo = make(map[int][]OnitamaMove)
-	for i := 0; i < len(newCards); i++ {
-		moveInfo[i] = make([]OnitamaMove, len(cards[i].MoveMasks))
-		flippedMoveInfo[i] = make([]OnitamaMove, len(cards[i].MoveMasks))
-		for j := 0; j < len(cards[i].MoveMasks); j++ {
-			moveInfo[i][j] = OnitamaMove{
-				Card: 1 << i,
-				Move: cards[i].MoveMasks[j],
-				Mask: cards[i].MovableMasks[j],
-			}
-			flippedMoveInfo[i][j] = OnitamaMove{
-				Card: 1 << i,
-				Move: cards[i].FlippedMoveMasks[j],
-				Mask: cards[i].FlippedMovableMasks[j],
-			}
-		}
-	}
-}
-
-func extractMoveInfo(board onitama.BitBoard) (uint, []OnitamaMove) {
+func extractMoveInfo(board BitBoard) (uint, []BitMove) {
 	var pieces uint
-	moves := make([]OnitamaMove, 0, 30)
+	moves := make([]BitMove, 0, 30)
 	if board.BlueToMove {
 		pieces = board.BlueKing | board.BluePawn
 		for i := 0; i < len(cards); i++ {
@@ -55,10 +23,10 @@ func extractMoveInfo(board onitama.BitBoard) (uint, []OnitamaMove) {
 	return pieces, moves
 }
 
-func genMoves(board onitama.BitBoard) []OnitamaMove {
+func genMoves(board BitBoard) []BitMove {
 	pieces, moves := extractMoveInfo(board)
 	// assume slightly-above-average capacity (empirically measured average is 13.4)
-	genMoves := make([]OnitamaMove, 0, 14)
+	genMoves := make([]BitMove, 0, 14)
 
 	for i := 0; i < 25; i++ {
 		if pieces&(1<<i) > 0 {
@@ -84,8 +52,8 @@ func genMoves(board onitama.BitBoard) []OnitamaMove {
 	return genMoves
 }
 
-func ApplyMove(board onitama.BitBoard, move OnitamaMove) onitama.BitBoard {
-	newBoard := onitama.BitBoard{
+func ApplyMove(board BitBoard, move BitMove) BitBoard {
+	newBoard := BitBoard{
 		BlueToMove: !board.BlueToMove,
 		BlueCard:   board.BlueCard & ^move.Card,
 		RedCard:    board.RedCard & ^move.Card,
@@ -117,22 +85,39 @@ func ApplyMove(board onitama.BitBoard, move OnitamaMove) onitama.BitBoard {
 	return newBoard
 }
 
-func FindChildren(board onitama.BitBoard) []onitama.BitBoard {
+func FindChildren(board BitBoard) []BitBoard {
 	moves := genMoves(board)
 	if len(moves) == 0 {
 		child := board
 		child.BlueToMove = !child.BlueToMove
-		return []onitama.BitBoard{child}
+		return []BitBoard{child}
 	}
-	children := make([]onitama.BitBoard, len(moves))
+	children := make([]BitBoard, len(moves))
 	for i := 0; i < len(moves); i++ {
 		children[i] = ApplyMove(board, moves[i])
 	}
 	return children
 }
 
-func FindRandomChild(board onitama.BitBoard) onitama.BitBoard {
+func FindRandomChild(board BitBoard) BitBoard {
 	children := FindChildren(board)
 	idx := rand.Intn(len(children))
 	return children[idx]
+}
+
+func IsTerminal(board BitBoard) bool {
+	checkmate := board.BlueKing == 0 || board.RedKing == 0
+	capturetheflag := board.BlueKing == 1<<2 || board.RedKing == 1<<22
+	return checkmate || capturetheflag
+}
+
+// +1 for blue, -1 for red, 0 for unfinished
+func GetWinner(board BitBoard) int {
+	if board.RedKing == 0 || board.BlueKing == 1<<22 {
+		return 1
+	}
+	if board.BlueKing == 0 || board.RedKing == 1<<2 {
+		return -1
+	}
+	return 0
 }

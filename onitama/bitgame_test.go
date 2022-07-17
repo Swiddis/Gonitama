@@ -1,12 +1,10 @@
-package search
+package onitama
 
 import (
 	"log"
 	"os"
 	"reflect"
 	"testing"
-
-	"github.com/Swiddis/gonitama/onitama"
 )
 
 func doCardStorage() {
@@ -14,26 +12,24 @@ func doCardStorage() {
 	if err != nil {
 		log.Fatal("Unable to read card json: " + err.Error())
 	}
-	cards := onitama.LoadCards(cardData)
-	bitCards := onitama.CalculateCardBitmasks(cards)
-	StoreCards(bitCards)
+	LoadCards(cardData)
 }
 
 func TestFindChildren(t *testing.T) {
 	type args struct {
-		board onitama.BitBoard
+		board BitBoard
 	}
 	tests := []struct {
 		name string
 		args args
-		want []onitama.BitBoard
+		want []BitBoard
 	}{
 		{
 			name: "Initial Board",
 			args: args{
-				board: onitama.BitBoard{RedPawn: 27, RedKing: 4, BluePawn: 28311552, BlueKing: 4194304, RedCard: 3, BlueCard: 12, HeldCard: 16, BlueToMove: true},
+				board: BitBoard{RedPawn: 27, RedKing: 4, BluePawn: 28311552, BlueKing: 4194304, RedCard: 3, BlueCard: 12, HeldCard: 16, BlueToMove: true},
 			},
-			want: []onitama.BitBoard{
+			want: []BitBoard{
 				{RedPawn: 27, RedKing: 4, BluePawn: 27328512, BlueKing: 4194304, RedCard: 3, BlueCard: 24, HeldCard: 4, BlueToMove: false},
 				{RedPawn: 27, RedKing: 4, BluePawn: 27295744, BlueKing: 4194304, RedCard: 3, BlueCard: 20, HeldCard: 8, BlueToMove: false},
 				{RedPawn: 27, RedKing: 4, BluePawn: 26345472, BlueKing: 4194304, RedCard: 3, BlueCard: 24, HeldCard: 4, BlueToMove: false},
@@ -48,9 +44,9 @@ func TestFindChildren(t *testing.T) {
 		{
 			name: "Random Board 1",
 			args: args{
-				board: onitama.BitBoard{RedPawn: 147, RedKing: 4, BluePawn: 17203200, BlueKing: 4194304, RedCard: 18, BlueCard: 9, HeldCard: 4, BlueToMove: false},
+				board: BitBoard{RedPawn: 147, RedKing: 4, BluePawn: 17203200, BlueKing: 4194304, RedCard: 18, BlueCard: 9, HeldCard: 4, BlueToMove: false},
 			},
-			want: []onitama.BitBoard{
+			want: []BitBoard{
 				{RedPawn: 178, RedKing: 4, BluePawn: 17203200, BlueKing: 4194304, RedCard: 20, BlueCard: 9, HeldCard: 2, BlueToMove: true},
 				{RedPawn: 178, RedKing: 4, BluePawn: 17203200, BlueKing: 4194304, RedCard: 6, BlueCard: 9, HeldCard: 16, BlueToMove: true},
 				{RedPawn: 209, RedKing: 4, BluePawn: 17203200, BlueKing: 4194304, RedCard: 20, BlueCard: 9, HeldCard: 2, BlueToMove: true},
@@ -69,9 +65,9 @@ func TestFindChildren(t *testing.T) {
 		{
 			name: "Random Board 2",
 			args: args{
-				board: onitama.BitBoard{RedPawn: 0x1032, RedKing: 0x8, BluePawn: 0x1410400, BlueKing: 0x0, RedCard: 0x12, BlueCard: 0x9, HeldCard: 0x4, BlueToMove: true},
+				board: BitBoard{RedPawn: 0x1032, RedKing: 0x8, BluePawn: 0x1410400, BlueKing: 0x0, RedCard: 0x12, BlueCard: 0x9, HeldCard: 0x4, BlueToMove: true},
 			},
-			want: []onitama.BitBoard{
+			want: []BitBoard{
 				{RedPawn: 0x1012, RedKing: 0x8, BluePawn: 0x1410020, BlueKing: 0x0, RedCard: 0x12, BlueCard: 0xc, HeldCard: 0x1, BlueToMove: false},
 				{RedPawn: 0x1012, RedKing: 0x8, BluePawn: 0x1410020, BlueKing: 0x0, RedCard: 0x12, BlueCard: 0x5, HeldCard: 0x8, BlueToMove: false},
 				{RedPawn: 0x32, RedKing: 0x8, BluePawn: 0x1411000, BlueKing: 0x0, RedCard: 0x12, BlueCard: 0x5, HeldCard: 0x8, BlueToMove: false},

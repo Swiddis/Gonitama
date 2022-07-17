@@ -12,7 +12,6 @@ import (
 
 	"git.sr.ht/~bonbon/gmcts"
 	"github.com/Swiddis/gonitama/onitama"
-	"github.com/Swiddis/gonitama/search"
 	"github.com/fatih/color"
 )
 
@@ -67,7 +66,7 @@ func formatBoard(board onitama.BitBoard, cards []onitama.Card) string {
 	return formatted
 }
 
-func playAIMove(gameState search.Onitama, milliseconds int64, concurrent int) search.Onitama {
+func playAIMove(gameState onitama.BitBoard, milliseconds int64, concurrent int) onitama.BitBoard {
 	var wait sync.WaitGroup
 	mcts := gmcts.NewMCTS(gameState)
 	start := time.Now().UnixMilli()
@@ -91,10 +90,10 @@ func playAIMove(gameState search.Onitama, milliseconds int64, concurrent int) se
 
 	bestAction := mcts.BestAction()
 	nextState, _ := gameState.ApplyAction(bestAction)
-	return nextState.(search.Onitama)
+	return nextState.(onitama.BitBoard)
 }
 
-func playUserMove(gameState search.Onitama, cards []onitama.Card) search.Onitama {
+func playUserMove(gameState onitama.BitBoard, cards []onitama.Card) onitama.BitBoard {
 	for {
 		fmt.Print("\nmove: ")
 		var cardName, startPos, endPos string
@@ -117,16 +116,14 @@ func playUserMove(gameState search.Onitama, cards []onitama.Card) search.Onitama
 		ecol := (endPos[0] - 'a')
 		erow := endPos[1] - '1'
 
-		nextState := search.ApplyMove(gameState.Board, search.OnitamaMove{
+		nextState := onitama.ApplyMove(gameState, onitama.BitMove{
 			Card: 1 << cardIdx,
 			Move: ((0b1 << 24) >> scol >> (srow * 5)) | ((0b1 << 24) >> ecol >> (erow * 5)),
 		})
-		children := search.FindChildren(gameState.Board)
+		children := onitama.FindChildren(gameState)
 		for i := 0; i < len(children); i++ {
 			if children[i] == nextState {
-				return search.Onitama{
-					Board: nextState,
-				}
+				return nextState
 			}
 		}
 
@@ -134,7 +131,7 @@ func playUserMove(gameState search.Onitama, cards []onitama.Card) search.Onitama
 	}
 }
 
-func loadGame() (search.Onitama, []onitama.Card) {
+func loadGame() (onitama.BitBoard, []onitama.Card) {
 	rand.Seed(time.Now().Unix())
 
 	cardData, err := os.ReadFile("./data/cards.json")
@@ -142,22 +139,20 @@ func loadGame() (search.Onitama, []onitama.Card) {
 		log.Fatal("Unable to read card json: " + err.Error())
 	}
 	cards := onitama.LoadCards(cardData)
-	bitCards := onitama.CalculateCardBitmasks(cards)
-	search.StoreCards(bitCards)
 
-	return search.NewGame(onitama.InitialBoard()), cards
+	return onitama.InitialBoard(), cards
 }
 
 func main() {
 	gameState, cards := loadGame()
-	fmt.Println(formatBoard(gameState.Board, cards))
+	fmt.Println(formatBoard(gameState, cards))
 	fmt.Println()
 
 	for i := 1; !gameState.IsTerminal(); i++ {
 		gameState = playAIMove(gameState, 1000, 6)
 
 		fmt.Printf("\n%v.\n", i)
-		fmt.Println(formatBoard(gameState.Board, cards))
+		fmt.Println(formatBoard(gameState, cards))
 		fmt.Println()
 
 		if gameState.IsTerminal() {
@@ -166,7 +161,7 @@ func main() {
 
 		gameState = playAIMove(gameState, 1000, 6)
 		// gameState = playUserMove(gameState, cards)
-		fmt.Println(formatBoard(gameState.Board, cards))
+		fmt.Println(formatBoard(gameState, cards))
 		fmt.Println()
 	}
 }
