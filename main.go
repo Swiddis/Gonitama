@@ -116,14 +116,15 @@ func playUserMove(gameState onitama.BitBoard, cards []onitama.Card) onitama.BitB
 		ecol := (endPos[0] - 'a')
 		erow := endPos[1] - '1'
 
-		nextState := onitama.ApplyMove(gameState, onitama.BitMove{
+		nextState, _ := gameState.ApplyAction(onitama.BitMove{
 			Card: 1 << cardIdx,
 			Move: ((0b1 << 24) >> scol >> (srow * 5)) | ((0b1 << 24) >> ecol >> (erow * 5)),
 		})
-		children := onitama.FindChildren(gameState)
-		for i := 0; i < len(children); i++ {
-			if children[i] == nextState {
-				return nextState
+		actions := gameState.GetActions()
+		for i := 0; i < len(actions); i++ {
+			child, _ := gameState.ApplyAction(actions[i])
+			if child == nextState {
+				return nextState.(onitama.BitBoard)
 			}
 		}
 

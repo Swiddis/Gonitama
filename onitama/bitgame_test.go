@@ -87,7 +87,7 @@ func TestFindChildren(t *testing.T) {
 	doCardStorage()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := FindChildren(tt.args.board); !reflect.DeepEqual(got, tt.want) {
+			if got := findChildren(tt.args.board); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("FindChildren() = %v, want %v", got, tt.want)
 			}
 		})

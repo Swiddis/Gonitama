@@ -17,15 +17,15 @@ func NewGame(board BitBoard) Onitama {
 }
 
 func (b BitBoard) GetActions() []gmcts.Action {
-	actions := genMoves(b)
-	if len(actions) == 0 {
-		actions = []BitMove{{Card: 0, Move: 0, Mask: 0}}
+	moves := genMoves(b)
+	if len(moves) == 0 {
+		moves = []BitMove{{Card: 0, Move: 0, Mask: 0}}
 	}
-	gactions := make([]gmcts.Action, len(actions))
-	for i := 0; i < len(actions); i++ {
-		gactions[i] = gmcts.Action(actions[i])
+	actions := make([]gmcts.Action, len(moves))
+	for i := 0; i < len(moves); i++ {
+		actions[i] = gmcts.Action(moves[i])
 	}
-	return gactions
+	return actions
 }
 
 func (b BitBoard) ApplyAction(action gmcts.Action) (gmcts.Game, error) {
@@ -34,7 +34,7 @@ func (b BitBoard) ApplyAction(action gmcts.Action) (gmcts.Game, error) {
 		newGame.BlueToMove = !newGame.BlueToMove
 		return gmcts.Game(newGame), nil
 	}
-	return gmcts.Game(ApplyMove(b, action.(BitMove))), nil
+	return gmcts.Game(applyMove(b, action.(BitMove))), nil
 }
 
 func (b BitBoard) Player() gmcts.Player {
@@ -45,7 +45,7 @@ func (b BitBoard) Player() gmcts.Player {
 }
 
 func (b BitBoard) IsTerminal() bool {
-	return IsTerminal(b)
+	return isTerminal(b)
 }
 
 func (b BitBoard) Winners() []gmcts.Player {

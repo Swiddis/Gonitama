@@ -52,7 +52,7 @@ func genMoves(board BitBoard) []BitMove {
 	return genMoves
 }
 
-func ApplyMove(board BitBoard, move BitMove) BitBoard {
+func applyMove(board BitBoard, move BitMove) BitBoard {
 	newBoard := BitBoard{
 		BlueToMove: !board.BlueToMove,
 		BlueCard:   board.BlueCard & ^move.Card,
@@ -85,7 +85,7 @@ func ApplyMove(board BitBoard, move BitMove) BitBoard {
 	return newBoard
 }
 
-func FindChildren(board BitBoard) []BitBoard {
+func findChildren(board BitBoard) []BitBoard {
 	moves := genMoves(board)
 	if len(moves) == 0 {
 		child := board
@@ -94,18 +94,18 @@ func FindChildren(board BitBoard) []BitBoard {
 	}
 	children := make([]BitBoard, len(moves))
 	for i := 0; i < len(moves); i++ {
-		children[i] = ApplyMove(board, moves[i])
+		children[i] = applyMove(board, moves[i])
 	}
 	return children
 }
 
-func FindRandomChild(board BitBoard) BitBoard {
-	children := FindChildren(board)
+func findRandomChild(board BitBoard) BitBoard {
+	children := findChildren(board)
 	idx := rand.Intn(len(children))
 	return children[idx]
 }
 
-func IsTerminal(board BitBoard) bool {
+func isTerminal(board BitBoard) bool {
 	checkmate := board.BlueKing == 0 || board.RedKing == 0
 	capturetheflag := board.BlueKing == 1<<2 || board.RedKing == 1<<22
 	return checkmate || capturetheflag

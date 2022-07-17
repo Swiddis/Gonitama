@@ -21,7 +21,10 @@ func BenchmarkSearch(b *testing.B) {
 	for i := 0; i < 500000; i++ {
 		board := onitama.InitialBoard()
 		for !board.IsTerminal() {
-			board = onitama.FindRandomChild(board)
+			actions := board.GetActions()
+			action := rand.Intn(len(actions))
+			next, _ := board.ApplyAction(actions[action])
+			board = next.(onitama.BitBoard)
 		}
 	}
 }
