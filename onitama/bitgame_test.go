@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"sort"
 	"testing"
 )
 
@@ -13,6 +14,24 @@ func doCardStorage() {
 		log.Fatal("Unable to read card json: " + err.Error())
 	}
 	LoadCards(cardData)
+}
+
+func compareBoards(boards []BitBoard) func(int, int) bool {
+	return func(i, j int) bool {
+		if boards[i].RedPawn != boards[j].RedPawn {
+			return boards[i].RedPawn < boards[j].RedPawn
+		}
+		if boards[i].RedKing != boards[j].RedKing {
+			return boards[i].RedKing < boards[j].RedKing
+		}
+		if boards[i].BlueKing != boards[j].BlueKing {
+			return boards[i].BlueKing < boards[j].BlueKing
+		}
+		if boards[i].BluePawn != boards[j].BluePawn {
+			return boards[i].BluePawn < boards[j].BluePawn
+		}
+		return boards[i].HeldCard < boards[j].HeldCard
+	}
 }
 
 func TestFindChildren(t *testing.T) {
@@ -87,7 +106,10 @@ func TestFindChildren(t *testing.T) {
 	doCardStorage()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := findChildren(tt.args.board); !reflect.DeepEqual(got, tt.want) {
+			sort.Slice(tt.want, compareBoards(tt.want))
+			got := findChildren(tt.args.board)
+			sort.Slice(got, compareBoards(got))
+			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("FindChildren() = %v, want %v", got, tt.want)
 			}
 		})
