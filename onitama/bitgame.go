@@ -1,23 +1,29 @@
 package onitama
 
-import "math/rand"
+import (
+	"math/bits"
+	"math/rand"
+)
 
 func extractMoveInfo(board BitBoard) (uint, []BitMove) {
 	var pieces uint
+	var ccopy uint
 	moves := make([]BitMove, 0, 30)
 	if board.BlueToMove {
 		pieces = board.BlueKing | board.BluePawn
-		for i := 0; i < len(cards); i++ {
-			if board.BlueCard&(1<<i) > 0 {
-				moves = append(moves, flippedMoveInfo[i]...)
-			}
+		ccopy = board.BlueCard
+		for ccopy > 0 {
+			i := bits.Len(ccopy) - 1
+			moves = append(moves, flippedMoveInfo[i]...)
+			ccopy ^= 1 << i
 		}
 	} else {
 		pieces = board.RedKing | board.RedPawn
-		for i := 0; i < len(cards); i++ {
-			if board.RedCard&(1<<i) > 0 {
-				moves = append(moves, moveInfo[i]...)
-			}
+		ccopy = board.RedCard
+		for ccopy > 0 {
+			i := bits.Len(ccopy) - 1
+			moves = append(moves, moveInfo[i]...)
+			ccopy ^= 1 << i
 		}
 	}
 	return pieces, moves
@@ -28,26 +34,27 @@ func genMoves(board BitBoard) []BitMove {
 	// assume slightly-above-average capacity (empirically measured average is 13.4)
 	genMoves := make([]BitMove, 0, 14)
 
-	for i := 0; i < 25; i++ {
-		if pieces&(1<<i) > 0 {
-			for j := 0; j < len(moves); j++ {
-				currMove := moves[j]
-				if (1<<i)&currMove.Mask == 0 {
-					continue
+	pcopy := pieces
+	for pcopy > 0 {
+		i := bits.Len(pcopy) - 1
+		for j := 0; j < len(moves); j++ {
+			currMove := moves[j]
+			if (1<<i)&currMove.Mask == 0 {
+				continue
+			}
+			if (1<<i)&currMove.Mask > 0 {
+				genMove := currMove
+				if i > 12 {
+					genMove.Move = currMove.Move << (i - 12)
+				} else if i < 12 {
+					genMove.Move = currMove.Move >> (12 - i)
 				}
-				if (1<<i)&currMove.Mask > 0 {
-					genMove := currMove
-					if i > 12 {
-						genMove.Move = currMove.Move << (i - 12)
-					} else if i < 12 {
-						genMove.Move = currMove.Move >> (12 - i)
-					}
-					if genMove.Move&pieces != genMove.Move {
-						genMoves = append(genMoves, genMove)
-					}
+				if genMove.Move&pieces != genMove.Move {
+					genMoves = append(genMoves, genMove)
 				}
 			}
 		}
+		pcopy ^= 1 << i
 	}
 	return genMoves
 }
